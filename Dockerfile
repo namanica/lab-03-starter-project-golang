@@ -1,4 +1,4 @@
-# Етап 1 — збірка
+# Етап 1 — builder
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
@@ -6,12 +6,9 @@ WORKDIR /app
 COPY . .
 
 RUN go mod tidy
-RUN go build -o server .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server .
 
-# Етап 2 — "порожній" образ
-FROM scratch
-
-COPY --from=builder /app/server /server
-
-# Запускаємо бінарник
+# Етап 2 — distroless
+FROM gcr.io/distroless/static
+COPY --from=builder /app/server /
 ENTRYPOINT ["/server"]
