@@ -1,19 +1,17 @@
-# Базовий образ з Go
-FROM golang:1.21-alpine
+# Етап 1 — збірка
+FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
-# Копіюємо файли
 COPY . .
 
-# Завантажуємо залежності
 RUN go mod tidy
-
-# Компілюємо виконуваний файл
 RUN go build -o server .
 
-# Відкриваємо порт (якщо потрібен)
-EXPOSE 8080
+# Етап 2 — "порожній" образ
+FROM scratch
 
-# Запускаємо
-CMD ["./server"]
+COPY --from=builder /app/server /server
+
+# Запускаємо бінарник
+ENTRYPOINT ["/server"]
